@@ -5,16 +5,15 @@ import pandas as pd
 import numpy as np
 from pandasql import sqldf
 from sklearn import metrics
-from dateutil.relativedelta import relativedelta
 from sklearn.model_selection import train_test_split 
 from sklearn.linear_model import LinearRegression
 from dateutil.relativedelta import relativedelta
-
 
 token={'Authorization': 'BEARER eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2OTA4OTg1MTEsInR5cGUiOiJleHRlcm5hbCIsInVzZXIiOiJ2YWxlbnByb29tZ0BnbWFpbC5jb20ifQ.TFIg3m95E_1LkiNEhbXUV_LbM91gFU582lLpjZ38ek_K1OLNFMBY5-bWEVBX9DbQqXSaNaDVn78J7zgpcqpVIw'}
 url0='https://api.estadisticasbcra.com/usd_of'
 url1='https://api.estadisticasbcra.com/usd'
 url2='https://api.estadisticasbcra.com/var_usd_vs_usd_of'
+url3=('https://api.estadisticasbcra.com/milestones')
 pysqldf=lambda q: sqldf(q,globals())
 
 class PI_BCRA:
@@ -67,6 +66,7 @@ class PI_BCRA:
         diferencia=PI_BCRA.dframes(2)
         oficialRL=PI_BCRA.getDFAPI(url0,token)
         blueRL=PI_BCRA.getDFAPI(url1,token)
+        hechos=PI_BCRA.getDFAPI(url3,token)
 
         cuatro_años = (datetime.datetime.now()-datetime.timedelta(days=1680)).strftime("%Y-%m-%d")
         hoy = datetime.date.today()
@@ -79,6 +79,7 @@ class PI_BCRA:
                 last_year = (datetime.datetime.now()-datetime.timedelta(days=396)).strftime("%Y-%m-%d")
 
                 precio_365=pd.merge(oficial,blue)
+                precio=precio_365.copy().join(diferencia)
                 precio_365=precio_365.loc[(precio_365['fecha']>str(last_year))&(precio_365['fecha']<str(hoy))].join(diferencia)
                 precio_365=precio_365.iloc[::-1].head(264)
 
@@ -88,10 +89,9 @@ class PI_BCRA:
                 precio_365['dia']=dia.dt.isocalendar().day
                 
                 cols=['dia','semana','fecha','precio_oficial','precio_blue','diferencia']
+                mask=['fecha','precio_oficial','precio_blue','diferencia']
                 precio_365=precio_365[cols]
                 precio_365['fecha']=pd.to_datetime(precio_365['fecha']).dt.date
-
-                mask=['fecha','precio_oficial','precio_blue','diferencia']
                 
                 if quest==0: return precio_365
                 if quest==1:    
@@ -116,8 +116,11 @@ class PI_BCRA:
                             ORDER BY diferencia_dia_promedio DESC'''
                     return pysqldf(diaD)          
             elif 4<quest<=6:
-            
-                if quest==6:
+                if quest==5:
+                    hechos.rename(columns={'d':'fecha','e':'evento','t':'tipo'},inplace=True)
+                    p=precio.copy().merge(hechos,on='fecha')
+                    return p
+                elif quest==6:
                     month_pred=PI_BCRA._getmonth()
                     if  type=='oficial':
                             #OFICIAL
@@ -162,10 +165,6 @@ class PI_BCRA:
                             ,print('Predicion 3 meses:', np.exp(regressor.predict(month_pred)[0]).round(2))
                             ,print('Predicion 6 meses:',  np.exp(regressor.predict(month_pred)[1]).round(2))
                             ,print('Predicion 12 meses:',  np.exp(regressor.predict(month_pred)[2]).round(2)))
-
-                
-
-    
             else:
                 compra_venta=pd.merge(oficial,blue)
                 return compra_venta.loc[(compra_venta['fecha']>str(cuatro_años))&(compra_venta['fecha']<str(hoy))].join(diferencia)        
