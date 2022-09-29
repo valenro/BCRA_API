@@ -1,8 +1,15 @@
+from calendar import month
 import requests
-import pandas as pd
 import datetime
-from dateutil.relativedelta import relativedelta
+import pandas as pd
+import numpy as np
 from pandasql import sqldf
+from sklearn import metrics
+from dateutil.relativedelta import relativedelta
+from sklearn.model_selection import train_test_split 
+from sklearn.linear_model import LinearRegression
+from dateutil.relativedelta import relativedelta
+
 
 token={'Authorization': 'BEARER eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2OTA4OTg1MTEsInR5cGUiOiJleHRlcm5hbCIsInVzZXIiOiJ2YWxlbnByb29tZ0BnbWFpbC5jb20ifQ.TFIg3m95E_1LkiNEhbXUV_LbM91gFU582lLpjZ38ek_K1OLNFMBY5-bWEVBX9DbQqXSaNaDVn78J7zgpcqpVIw'}
 url0='https://api.estadisticasbcra.com/usd_of'
@@ -11,6 +18,18 @@ url2='https://api.estadisticasbcra.com/var_usd_vs_usd_of'
 pysqldf=lambda q: sqldf(q,globals())
 
 class PI_BCRA:
+    
+    def _getmonth():
+        tresM=datetime.datetime.now()+datetime.timedelta(days=90)
+        seisM=datetime.datetime.now()+datetime.timedelta(days=120)
+        doceM=datetime.datetime.now()+datetime.timedelta(days=365)
+
+        tresM=tresM.toordinal()
+        seisM=seisM.toordinal()
+        doceM=doceM.toordinal()
+
+        month_pred=pd.DataFrame([tresM,seisM,doceM])
+        return month_pred.values.reshape(-1,1)
 
     def getDFAPI(url,token=None):
         '''
@@ -42,15 +61,22 @@ class PI_BCRA:
         elif dfs == 2: return diferencia
         else: return None
 
-    def normdf(quest:int):
+    def normdf(quest:int,type:str=None):
         oficial=PI_BCRA.dframes(0)
         blue=PI_BCRA.dframes(1)
         diferencia=PI_BCRA.dframes(2)
+        oficialRL=PI_BCRA.getDFAPI(url0,token)
+        blueRL=PI_BCRA.getDFAPI(url1,token)
 
+        cuatro_años = (datetime.datetime.now()-datetime.timedelta(days=1680)).strftime("%Y-%m-%d")
+        hoy = datetime.date.today()
+
+        oficialRL=oficialRL.loc[(oficialRL['d']>str(cuatro_años))&(oficialRL['d']<str(hoy))]
+        blueRL=blueRL.loc[(blueRL['d']>str(cuatro_años))&(blueRL['d']<str(hoy))]
+        
         if quest<=7:
             if quest<=4:
                 last_year = (datetime.datetime.now()-datetime.timedelta(days=396)).strftime("%Y-%m-%d")
-                hoy=datetime.date.today()
 
                 precio_365=pd.merge(oficial,blue)
                 precio_365=precio_365.loc[(precio_365['fecha']>str(last_year))&(precio_365['fecha']<str(hoy))].join(diferencia)
@@ -89,14 +115,64 @@ class PI_BCRA:
                             GROUP BY dia
                             ORDER BY diferencia_dia_promedio DESC'''
                     return pysqldf(diaD)          
-            elif 4<quest<=6:return None
+            elif 4<quest<=6:
+            
+                if quest==6:
+                    month_pred=PI_BCRA._getmonth()
+                    if  type=='oficial':
+                            #OFICIAL
+                            oficialRL['d']=pd.to_datetime(oficialRL['d']).apply(lambda x: x.toordinal())
+                            oficialRL['v']=np.log(oficialRL.v)
+
+                            X=oficialRL['d'].values.reshape(-1,1)
+                            y=oficialRL['v'].values.reshape(-1,1)
+
+                            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
+                            regressor = LinearRegression()  
+                            regressor.fit(X_train, y_train)
+                            y_pred=regressor.predict(X_test)
+
+                            return (print('''    ##############################
+    ##|Prediccion Dólar Oficial|##
+    ##############################''')
+                                    ,print('Mean Squared Error:', metrics.mean_squared_error(y_test, y_pred).round(3))
+                                    ,print('Accuracy Score:', regressor.score(X_test,y_test).round(2))
+                                    ,print('Predicion 3 meses:', np.exp(regressor.predict(month_pred)[0]).round(2))
+                                    ,print('Predicion 6 meses:',  np.exp(regressor.predict(month_pred)[1]).round(2))
+                                    ,print('Predicion 12 meses:',  np.exp(regressor.predict(month_pred)[2]).round(2)))
+                    if type=='blue':
+                        #BLUE
+                        blueRL['d']=pd.to_datetime(blueRL['d']).apply(lambda x: x.toordinal())
+                        blueRL['v']=np.log(blueRL.v)
+
+                        X1=blueRL['d'].values.reshape(-1,1)
+                        y1=blueRL['v'].values.reshape(-1,1)
+
+                        X1_train, X1_test, y1_train, y1_test = train_test_split(X1, y1, test_size=0.2, random_state=0)
+                        regressor = LinearRegression()  
+                        regressor.fit(X1_train, y1_train)
+
+                        y1_pred=regressor.predict(X1_test)
+
+                        return (print('''    ##############################
+    ##|Prediccion Dólar Blue|##
+    ##############################''')
+                            ,print('Mean Squared Error:', metrics.mean_squared_error(y1_test, y1_pred).round(2))
+                            ,print('Accuracy Score:', regressor.score(X1_test,y1_test).round(2))
+                            ,print('Predicion 3 meses:', np.exp(regressor.predict(month_pred)[0]).round(2))
+                            ,print('Predicion 6 meses:',  np.exp(regressor.predict(month_pred)[1]).round(2))
+                            ,print('Predicion 12 meses:',  np.exp(regressor.predict(month_pred)[2]).round(2)))
+
+                
+
+    
             else:
-                cuatro_años = (datetime.datetime.now()-datetime.timedelta(days=1680)).strftime("%Y-%m-%d")
                 compra_venta=pd.merge(oficial,blue)
-                return compra_venta.loc[(compra_venta['fecha']>str(cuatro_años))&(compra_venta['fecha']<str(hoy))].join(diferencia)
-        
+                return compra_venta.loc[(compra_venta['fecha']>str(cuatro_años))&(compra_venta['fecha']<str(hoy))].join(diferencia)        
         else: return None
 
 pi=PI_BCRA
-norm=pi.normdf(0)
-print(norm)
+# print(pi._getmonth())
+
+pi.normdf(6,'blue')
+
