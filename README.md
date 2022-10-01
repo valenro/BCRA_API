@@ -22,7 +22,6 @@
          * 3) Semana con mayor variación en la brecha
          * 4) Día de la semana donde hay mayor variación en la brecha
  
- 
      * General:
          * 5) Con la info histórica del valor del dólar y del blue, realizar un análisis exploratorio. Cruzar la data con sucesos importantes a nivel político-económico y graficar mes a mes.
 
@@ -30,9 +29,7 @@
              * 3 meses
              * 6 meses
              * 12 meses
-         * 7) Bonus opcional: Realizar una calculadora de predicción de aumento del dólar
- 
  
  * Inflación vs Dólar
      * Últimos 4 años:
-         * 8) Mejor momento para comprar dolár oficial y venderlo a dolár blue
+         * 7) Mejor momento para comprar dolár oficial y venderlo a dolár blue
