@@ -8,7 +8,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 
 class PI_BCRA:
-    token={'Authorization': 'BEARER eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2OTA4OTg1MTEsInR5cGUiOiJleHRlcm5hbCIsInVzZXIiOiJ2YWxlbnByb29tZ0BnbWFpbC5jb20ifQ.TFIg3m95E_1LkiNEhbXUV_LbM91gFU582lLpjZ38ek_K1OLNFMBY5-bWEVBX9DbQqXSaNaDVn78J7zgpcqpVIw'}
+    token={'Authorization': 'BEARER eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2OTEyMzU5NzcsInR5cGUiOiJleHRlcm5hbCIsInVzZXIiOiJ2YWxlbnRpbmphamFqYUBvdXRsb29rLmNvbSJ9.w4x86o2GigIyp4vzrYceC0_DUqs6eKNGn_WasjFchNR91iqG9fwISfvjD5XGL7pdY-k6XTBZ7ERpt9FuzJb2xw'}
     url0='https://api.estadisticasbcra.com/usd_of'
     url1='https://api.estadisticasbcra.com/usd'
     url2='https://api.estadisticasbcra.com/var_usd_vs_usd_of'
@@ -39,39 +39,39 @@ class PI_BCRA:
         else:
             api=requests.get(url,headers=token)
             df=api.text
-            df_api=pd.read_json(df,lines=True, orient = 'split')
+            df_api=pd.read_json(df,orient = 'records')
             return df_api
 
-    def dframes(dfs:int):
-        oficial=PI_BCRA.getDFAPI(PI_BCRA.url0,PI_BCRA.token)
-        blue=PI_BCRA.getDFAPI(PI_BCRA.url1,PI_BCRA.token)
-        diferencia=PI_BCRA.getDFAPI(PI_BCRA.url2,PI_BCRA.token)
+    oficial_df=getDFAPI(url0,token)
+    blue_df=getDFAPI(url1,token)
+    diferencia_df=getDFAPI(url2,token)
 
-        oficial.rename(columns={'d':'fecha','v':'precio_oficial'},inplace=True)
-        blue.rename(columns={'d':'fecha','v':'precio_blue'},inplace=True)
-        diferencia.drop('d',axis=1,inplace=True)
-        diferencia.rename(columns={'v':'diferencia'},inplace=True)
-        
-        if dfs == 0: return oficial
-        elif dfs == 1: return blue
-        elif dfs == 2: return diferencia
+    def prints():
+        print(PI_BCRA.oficial_df),
+        print(PI_BCRA.blue_df),
+        print(PI_BCRA.diferencia_df)
+
+    
+    def dframes(dfs:int,oficial=oficial_df,blue=blue_df,diferencia=diferencia_df):
+        if dfs == 0: 
+            oficial.rename(columns={'d':'fecha','v':'precio_oficial'},inplace=True)
+            return oficial
+        elif dfs == 1: 
+            blue.rename(columns={'d':'fecha','v':'precio_blue'},inplace=True)
+            return blue
+        elif dfs == 2:
+            diferencia.rename(columns={'v':'diferencia'},inplace=True)
+            diferencia.drop(columns={'d'},inplace=True)
+            return diferencia
         else: return None
 
     def normdf(quest:int,type:str=None):
-        oficial=PI_BCRA.dframes(0)
-        blue=PI_BCRA.dframes(1)
-        diferencia=PI_BCRA.dframes(2)
-        oficialRL=PI_BCRA.getDFAPI(PI_BCRA.url0,PI_BCRA.token)
-        blueRL=PI_BCRA.getDFAPI(PI_BCRA.url1,PI_BCRA.token)
-        hechos=PI_BCRA.getDFAPI(PI_BCRA.url3,PI_BCRA.token)
-
-        cuatro_años = (datetime.datetime.now()-datetime.timedelta(days=1680)).strftime("%Y-%m-%d")
-        hoy = datetime.date.today()
-
-        oficialRL=oficialRL.loc[(oficialRL['d']>str(cuatro_años))&(oficialRL['d']<str(hoy))]
-        blueRL=blueRL.loc[(blueRL['d']>str(cuatro_años))&(blueRL['d']<str(hoy))]
-        
         if quest<=7:
+            oficial=PI_BCRA.dframes(0)
+            blue=PI_BCRA.dframes(1)
+            diferencia=PI_BCRA.dframes(2)
+            cuatro_años = (datetime.datetime.now()-datetime.timedelta(days=1680)).strftime("%Y-%m-%d")
+            hoy = datetime.date.today()
             if quest<=4:
                 last_year = (datetime.datetime.now()-datetime.timedelta(days=396)).strftime("%Y-%m-%d")
 
@@ -89,7 +89,7 @@ class PI_BCRA:
                 mask=['fecha','precio_oficial','precio_blue','diferencia']
                 precio_365=precio_365[cols]
                 precio_365['fecha']=pd.to_datetime(precio_365['fecha']).dt.date
-                
+
                 if quest==0: return precio_365
                 if quest==1:    
                     precio_max=precio_365[precio_365['diferencia']==precio_365['diferencia'].max()]
@@ -114,13 +114,18 @@ class PI_BCRA:
                     return PI_BCRA.pysqldf(diaD)          
             elif 4<quest<=6:
                 if quest==5:
+                    hechos=PI_BCRA.getDFAPI(PI_BCRA.url3,PI_BCRA.token)
                     hechos.rename(columns={'d':'fecha','e':'evento','t':'tipo'},inplace=True)
                     p=precio.copy().merge(hechos,on='fecha')
                     return p
                 elif quest==6:
                     month_pred=PI_BCRA._getmonth()
+        
                     if  type=='oficial':
                             #OFICIAL
+                            oficialRL=PI_BCRA.getDFAPI(PI_BCRA.url0,PI_BCRA.token)
+                            oficialRL=oficialRL.loc[(oficialRL['d']>str(cuatro_años))&(oficialRL['d']<str(hoy))]
+
                             oficialRL['d']=pd.to_datetime(oficialRL['d']).apply(lambda x: x.toordinal())
                             oficialRL['v']=np.log(oficialRL.v)
 
@@ -142,6 +147,8 @@ class PI_BCRA:
                                     ,print('Predicion 12 meses:',  np.exp(regressor.predict(month_pred)[2]).round(2)))
                     if type=='blue':
                         #BLUE
+                        blueRL=PI_BCRA.getDFAPI(PI_BCRA.url1,PI_BCRA.token)
+                        blueRL=blueRL.loc[(blueRL['d']>str(cuatro_años))&(blueRL['d']<str(hoy))]
                         blueRL['d']=pd.to_datetime(blueRL['d']).apply(lambda x: x.toordinal())
                         blueRL['v']=np.log(blueRL.v)
 
@@ -166,3 +173,7 @@ class PI_BCRA:
                 compra_venta=pd.merge(oficial,blue)
                 return compra_venta.loc[(compra_venta['fecha']>str(cuatro_años))&(compra_venta['fecha']<str(hoy))].join(diferencia)        
         else: return None
+
+pi=PI_BCRA
+pi.normdf(1)
+# pi.prints()
