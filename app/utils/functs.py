@@ -8,7 +8,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 
 class PI_BCRA:
-    token={'Authorization': 'BEARER eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2OTEyMzU5NzcsInR5cGUiOiJleHRlcm5hbCIsInVzZXIiOiJ2YWxlbnRpbmphamFqYUBvdXRsb29rLmNvbSJ9.w4x86o2GigIyp4vzrYceC0_DUqs6eKNGn_WasjFchNR91iqG9fwISfvjD5XGL7pdY-k6XTBZ7ERpt9FuzJb2xw'}
+    token={'Authorization': 'BEARER eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2OTYxOTk4MzYsInR5cGUiOiJleHRlcm5hbCIsInVzZXIiOiJ2YWxlbnByb29tZyt3aGF0ZXZlckBnbWFpbC5jb20ifQ.pC-OGlhTrNFM0WPyCK7aMvUJR4YvjhhaX98uA-tso5bxKMIhqw-uH9fxW_o4mGlNv4szXC-0St4CQuklK8JU9Q'}
     url0='https://api.estadisticasbcra.com/usd_of'
     url1='https://api.estadisticasbcra.com/usd'
     url2='https://api.estadisticasbcra.com/var_usd_vs_usd_of'
@@ -143,14 +143,15 @@ class PI_BCRA:
                             regressor.fit(X_train, y_train)
                             y_pred=regressor.predict(X_test)
 
-                            return (print('''    ##############################
+                            return f'''    ##############################
     ##|Prediccion Dólar Oficial|##
-    ##############################''')
-                                    ,print('Mean Squared Error:', metrics.mean_squared_error(y_test, y_pred).round(3))
-                                    ,print('Accuracy Score:', regressor.score(X_test,y_test).round(2))
-                                    ,print('Predicion 3 meses:', np.exp(regressor.predict(month_pred)[0]).round(2))
-                                    ,print('Predicion 6 meses:',  np.exp(regressor.predict(month_pred)[1]).round(2))
-                                    ,print('Predicion 12 meses:',  np.exp(regressor.predict(month_pred)[2]).round(2)))
+    ##############################  
+Mean Squared Error: {metrics.mean_squared_error(y_test, y_pred).round(3)}
+Accuracy Score: {regressor.score(X_test,y_test).round(2)}
+Predicion 3 meses: {np.exp(regressor.predict(month_pred)[0]).round(2)}
+Predicion 6 meses: { np.exp(regressor.predict(month_pred)[1]).round(2)}
+Predicion 12 meses: {np.exp(regressor.predict(month_pred)[2]).round(2)}
+'''
                     if type=='blue':
                         #BLUE
                         blueRL=PI_BCRA.getDFAPI(PI_BCRA.url1,PI_BCRA.token)
@@ -167,22 +168,27 @@ class PI_BCRA:
 
                         y1_pred=regressor.predict(X1_test)
 
-                        return (print('''    ##############################
+                        return f'''    ##############################
     ##|Prediccion Dólar Blue|##
-    ##############################''')
-                            ,print('Mean Squared Error:', metrics.mean_squared_error(y1_test, y1_pred).round(2))
-                            ,print('Accuracy Score:', regressor.score(X1_test,y1_test).round(2))
-                            ,print('Predicion 3 meses:', np.exp(regressor.predict(month_pred)[0]).round(2))
-                            ,print('Predicion 6 meses:',  np.exp(regressor.predict(month_pred)[1]).round(2))
-                            ,print('Predicion 12 meses:',  np.exp(regressor.predict(month_pred)[2]).round(2)))
+    ##############################  
+Mean Squared Error: {metrics.mean_squared_error(y1_test, y1_pred).round(2)}
+Accuracy Score: {regressor.score(X1_test,y1_test).round(2)}
+Predicion 3 meses: {np.exp(regressor.predict(month_pred)[0]).round(2)}
+Predicion 6 meses: {np.exp(regressor.predict(month_pred)[1]).round(2)}
+Predicion 12 meses: {np.exp(regressor.predict(month_pred)[2]).round(2)}
+'''
             else:
                 compra_venta=PI_BCRA._365df(yr=False)
-                return compra_venta.loc[(compra_venta['fecha']>str(cuatro_años))&(compra_venta['fecha']<str(hoy))]
+                compra_venta=compra_venta.loc[(compra_venta['fecha']>str(cuatro_años))&(compra_venta['fecha']<str(hoy))]
+                mini=compra_venta.drop(columns='precio_blue').rename(columns={'precio_oficial':'precio'})
+                maxi=compra_venta.drop(columns='precio_oficial').rename(columns={'precio_blue':'precio'})
+
+                last4=pd.concat(
+                    [mini[mini['precio']==mini['precio'].min()],
+                    maxi[maxi['precio']==maxi['precio'].max()]]
+                ).rename(columns={'diferencia':'%_oficial_vs_blue'})
+                index=pd.Series(['mejor compra oficial','mejor venta blue'])
+                last4=last4.set_index(index)
+
+                return last4
         else: return None
-
-pi=PI_BCRA
-
-a=pi.exercise(7)
-print(a)
-
-# print(type(pi._365df(yr=True)))
