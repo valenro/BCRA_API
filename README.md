@@ -17,19 +17,19 @@
  Preguntas
   * Dólar oficial vs Dólar Blue:
      * Últimos 365 días:
-         * 1) Día con mayor variación en la brecha
-         * 2) Top 5 días con mayor variación
-         * 3) Semana con mayor variación en la brecha
-         * 4) Día de la semana donde hay mayor variación en la brecha
+         * 1_ Día con mayor variación en la brecha
+         * 2_ Top 5 días con mayor variación
+         * 3_ Semana con mayor variación en la brecha
+         * 4_ Día de la semana donde hay mayor variación en la brecha
  
      * General:
-         * 5) Con la info histórica del valor del dólar y del blue, realizar un análisis exploratorio. Cruzar la data con sucesos importantes a nivel político-económico y graficar mes a mes.
+         * 5_ Con la info histórica del valor del dólar y del blue, realizar un análisis exploratorio. Cruzar la data con sucesos importantes a nivel político-económico y graficar mes a mes.
 
-         * 6) Implementar una regresión lineal (una para cada tipo de dólar) para predecir el valor del dólar en:
+         * 6_ Implementar una regresión lineal (una para cada tipo de dólar) para predecir el valor del dólar en:
              * 3 meses
              * 6 meses
              * 12 meses
  
  * Inflación vs Dólar
      * Últimos 4 años:
-         * 7) Mejor momento para comprar dolár oficial y venderlo a dolár blue
+         * 7_ Mejor momento para comprar dolár oficial y venderlo a dolár blue

@@ -8,7 +8,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 
 class PI_BCRA:
-    token={'Authorization': 'BEARER eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2OTYxOTk4MzYsInR5cGUiOiJleHRlcm5hbCIsInVzZXIiOiJ2YWxlbnByb29tZyt3aGF0ZXZlckBnbWFpbC5jb20ifQ.pC-OGlhTrNFM0WPyCK7aMvUJR4YvjhhaX98uA-tso5bxKMIhqw-uH9fxW_o4mGlNv4szXC-0St4CQuklK8JU9Q'}
+    token={'Authorization': 'BEARER eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2OTEyMzU5NzcsInR5cGUiOiJleHRlcm5hbCIsInVzZXIiOiJ2YWxlbnRpbmphamFqYUBvdXRsb29rLmNvbSJ9.w4x86o2GigIyp4vzrYceC0_DUqs6eKNGn_WasjFchNR91iqG9fwISfvjD5XGL7pdY-k6XTBZ7ERpt9FuzJb2xw'}
     url0='https://api.estadisticasbcra.com/usd_of'
     url1='https://api.estadisticasbcra.com/usd'
     url2='https://api.estadisticasbcra.com/var_usd_vs_usd_of'
@@ -31,6 +31,11 @@ class PI_BCRA:
             return df_api
 
     def dframes(dfs:int):
+        '''
+        Método para extraer los datos de una API con el endpoint deseado
+        y retorna un dataframe con las columnas renombradas para luego aplicar
+        filtros.
+        '''
         if dfs == 0:
             oficial=PI_BCRA.getDFAPI(PI_BCRA.url0,PI_BCRA.token)
             oficial.rename(columns={'d':'fecha','v':'precio_oficial'},inplace=True)
@@ -47,6 +52,10 @@ class PI_BCRA:
         else: return None
 
     def _getmonth():
+        '''
+        Con esta función se obtienen las variables para realizar las
+        predicciones con el modelo de regresión lineal.
+        '''
         tresM=datetime.datetime.now()+datetime.timedelta(days=90)
         seisM=datetime.datetime.now()+datetime.timedelta(days=120)
         doceM=datetime.datetime.now()+datetime.timedelta(days=365)
@@ -59,31 +68,53 @@ class PI_BCRA:
         return month_pred.values.reshape(-1,1)
     
     def _365df(yr=True):
-        oficial=PI_BCRA.dframes(0)
+        '''
+        Este método retorna un dataframe con los datos filtrados por los registros
+        del último año exceptuando fines de semanas y feriados.
+        A medida que se actualiza la API, el dataframe también lo hace.
+
+        Si el parámetro "yr" es igual a "False", el método devolverá el total de los
+        registros.
+        '''
+        oficial=PI_BCRA.dframes(0) # extraer dataframes #
         blue=PI_BCRA.dframes(1)
         diferencia=PI_BCRA.dframes(2)
 
-        hoy = datetime.date.today()
+        hoy = datetime.date.today() # variables de tiempo #
         last_year = (datetime.datetime.now()-datetime.timedelta(days=396)).strftime("%Y-%m-%d")
 
-        precio_365=pd.merge(oficial,blue)
-        precio=precio_365.copy().join(diferencia)
+        precio_365=pd.merge(oficial,blue) 
+        precio=precio_365.copy().join(diferencia) # total de registros #
+        # filtro de un año #
         precio_365=precio_365.loc[(precio_365['fecha']>str(last_year))&(precio_365['fecha']<str(hoy))].join(diferencia)
         precio_365=precio_365.iloc[::-1].head(264)
 
-        semana=pd.to_datetime(precio_365['fecha'])
+        # se agregan columnas extrayendo semana y dia de la semana #
+        semana=pd.to_datetime(precio_365['fecha']) # se convierte el tipo de dato #
         dia=pd.to_datetime(precio_365['fecha'])
+        precio_365['fecha']=pd.to_datetime(precio_365['fecha']).dt.date
+
         precio_365['semana']= semana.dt.isocalendar().week
         precio_365['dia']=dia.dt.isocalendar().day
         
+        # orden de las columnas #
         cols=['dia','semana','fecha','precio_oficial','precio_blue','diferencia']
-        precio_365['fecha']=pd.to_datetime(precio_365['fecha']).dt.date
         precio_365=precio_365[cols]
 
         if yr==True: return precio_365
         else: return precio
 
     def exercise(quest:int,type:str=None):
+        '''
+        Esta función devuelve dataframes de acuerdo a los ejercicios
+        planteados en el cuestionario.
+        
+        quest: Corresponde al número de ejercicio deseado. Sólo recibe
+                un dato de tipo número entero entre 0 y 7.
+        
+        type: refiere al tipo de dólar para realizar la predicción. Es un
+                dato de tipo string que debe ser: "oficial" o "blue".
+        '''
         if quest<=7:
             cuatro_años = (datetime.datetime.now()-datetime.timedelta(days=1680)).strftime("%Y-%m-%d")
             hoy = datetime.date.today()
@@ -91,42 +122,47 @@ class PI_BCRA:
                 difdolar=PI_BCRA._365df(yr=True)
                 mask=['fecha','precio_oficial','precio_blue','diferencia']
                 if quest==0: return difdolar
-                elif quest==1:    
+                
+                elif quest==1:
                     precio_max=difdolar[difdolar['diferencia']==difdolar['diferencia'].max()]
                     return precio_max[mask]
+                
                 elif quest==2:
                     Top5=difdolar.nlargest(5, 'diferencia')
                     return Top5[mask].sort_values(by='fecha')
+                
                 elif quest==3:
-                    cols=['semana','diferencia','precio_blue','precio_oficial']
-                    cols1=['diferencia','precio_blue','precio_oficial']
-                    semana=difdolar[cols]
-                    semana=semana.groupby('semana')[cols1].mean()
+                    col=['semana','diferencia','precio_blue','precio_oficial']
+                    semana=difdolar[col].groupby('semana')
+                    semana=semana.agg({'diferencia':'mean','precio_blue':'mean','precio_oficial':'mean'})
                     semana.sort_values(by='diferencia',ascending=False,inplace=True)
                     semana.rename(columns={ 'diferencia':'diferencia_semana_promedio',
-                                        'precio_blue':'blue_promedio',
-                                        'precio_oficial': 'oficial_promedio'},inplace=True)
+                                    'precio_blue':'blue_promedio',
+                                    'precio_oficial': 'oficial_promedio'},inplace=True)
+                    semana.reset_index(inplace=True)
                     return semana.head(5)
+                
                 else:
                     cols=['dia','diferencia','precio_blue','precio_oficial']
-                    cols1=['diferencia','precio_blue','precio_oficial']
-                    diaD=difdolar[cols]
-                    diaD=diaD.groupby('dia')[cols1].mean()
+                    diaD=difdolar[cols].groupby('dia')
+                    diaD=diaD.agg({'diferencia':'mean','precio_blue':'mean','precio_oficial':'mean'})
                     diaD.sort_values(by='diferencia',ascending=False,inplace=True)
                     diaD.rename(columns={ 'diferencia':'diferencia_dia_promedio',
                                     'precio_blue':'blue_promedio',
                                     'precio_oficial': 'oficial_promedio'},inplace=True)
+                    diaD.reset_index(inplace=True)
                     return diaD.head(5)
-            elif 4<quest<=6:
+            
+            elif 4<quest<=6:    
                 if quest==5:
                     precio=PI_BCRA._365df(yr=False)
                     hechos=PI_BCRA.getDFAPI(PI_BCRA.url3,PI_BCRA.token)
                     hechos.rename(columns={'d':'fecha','e':'evento','t':'tipo'},inplace=True)
                     p=precio.copy().merge(hechos,on='fecha')
                     return p
+                
                 elif quest==6:
                     month_pred=PI_BCRA._getmonth()
-        
                     if  type=='oficial':
                             #OFICIAL
                             oficialRL=PI_BCRA.getDFAPI(PI_BCRA.url0,PI_BCRA.token)
@@ -145,7 +181,7 @@ class PI_BCRA:
 
                             return f'''    ##############################
     ##|Prediccion Dólar Oficial|##
-    ##############################  
+    ############################## 
 Mean Squared Error: {metrics.mean_squared_error(y_test, y_pred).round(3)}
 Accuracy Score: {regressor.score(X_test,y_test).round(2)}
 Predicion 3 meses: {np.exp(regressor.predict(month_pred)[0]).round(2)}
