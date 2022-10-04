@@ -8,7 +8,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 
 class PI_BCRA:
-    token={'Authorization': 'BEARER eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2OTYxOTk4MzYsInR5cGUiOiJleHRlcm5hbCIsInVzZXIiOiJ2YWxlbnByb29tZyt3aGF0ZXZlckBnbWFpbC5jb20ifQ.pC-OGlhTrNFM0WPyCK7aMvUJR4YvjhhaX98uA-tso5bxKMIhqw-uH9fxW_o4mGlNv4szXC-0St4CQuklK8JU9Q'}
+    token={'Authorization': 'BEARER eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2OTEyMzU5NzcsInR5cGUiOiJleHRlcm5hbCIsInVzZXIiOiJ2YWxlbnRpbmphamFqYUBvdXRsb29rLmNvbSJ9.w4x86o2GigIyp4vzrYceC0_DUqs6eKNGn_WasjFchNR91iqG9fwISfvjD5XGL7pdY-k6XTBZ7ERpt9FuzJb2xw'}
     url0='https://api.estadisticasbcra.com/usd_of'
     url1='https://api.estadisticasbcra.com/usd'
     url2='https://api.estadisticasbcra.com/var_usd_vs_usd_of'
@@ -98,24 +98,25 @@ class PI_BCRA:
                     Top5=difdolar.nlargest(5, 'diferencia')
                     return Top5[mask].sort_values(by='fecha')
                 elif quest==3:
-                    cols=['semana','diferencia','precio_blue','precio_oficial']
-                    cols1=['diferencia','precio_blue','precio_oficial']
-                    semana=difdolar[cols]
-                    semana=semana.groupby('semana')[cols1].mean()
+                    col=['semana','diferencia','precio_blue','precio_oficial']
+                    semana=difdolar[col].groupby('semana')
+                    semana=semana.agg({'diferencia':'mean','precio_blue':'mean','precio_oficial':'mean'})
                     semana.sort_values(by='diferencia',ascending=False,inplace=True)
                     semana.rename(columns={ 'diferencia':'diferencia_semana_promedio',
-                                        'precio_blue':'blue_promedio',
-                                        'precio_oficial': 'oficial_promedio'},inplace=True)
+                                    'precio_blue':'blue_promedio',
+                                    'precio_oficial': 'oficial_promedio'},inplace=True)
+                    semana.reset_index(inplace=True)
+                    
                     return semana.head(5)
                 else:
                     cols=['dia','diferencia','precio_blue','precio_oficial']
-                    cols1=['diferencia','precio_blue','precio_oficial']
-                    diaD=difdolar[cols]
-                    diaD=diaD.groupby('dia')[cols1].mean()
+                    diaD=difdolar[cols].groupby('dia')
+                    diaD=diaD.agg({'diferencia':'mean','precio_blue':'mean','precio_oficial':'mean'})
                     diaD.sort_values(by='diferencia',ascending=False,inplace=True)
                     diaD.rename(columns={ 'diferencia':'diferencia_dia_promedio',
                                     'precio_blue':'blue_promedio',
                                     'precio_oficial': 'oficial_promedio'},inplace=True)
+                    diaD.reset_index(inplace=True)
                     return diaD.head(5)
             elif 4<quest<=6:
                 if quest==5:
