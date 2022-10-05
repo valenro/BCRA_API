@@ -7,6 +7,8 @@ from sklearn import metrics
 from sklearn.model_selection import train_test_split 
 from sklearn.linear_model import LinearRegression
 
+''' # COPIA DEL ARCHIVO "API_BCRA_GET.py" # '''
+
 class PI_BCRA:
     token={'Authorization': 'BEARER eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2OTEyMzU5NzcsInR5cGUiOiJleHRlcm5hbCIsInVzZXIiOiJ2YWxlbnRpbmphamFqYUBvdXRsb29rLmNvbSJ9.w4x86o2GigIyp4vzrYceC0_DUqs6eKNGn_WasjFchNR91iqG9fwISfvjD5XGL7pdY-k6XTBZ7ERpt9FuzJb2xw'}
     url0='https://api.estadisticasbcra.com/usd_of'
@@ -16,12 +18,6 @@ class PI_BCRA:
     pysqldf=lambda q: sqldf(q,globals())
     
     def getDFAPI(url,token=None):
-        '''
-        Extrae la información de un API y lo retorna en formato DataFrame.
-        Parámetros:
-            - url: Es la url de la API a extraer en formato string.
-            - token: Recibe el token de acceso a la API en formato diccionario. Este es parámetro es opcional.
-        '''
         if type(url)!=str and type(token)!=dict:
             return 'Parametros incorrectos. Ingrese un dato de tipo "string" para el parametro url, y un dato de tipo "dict" para el parametro token'
         else:
@@ -59,25 +55,28 @@ class PI_BCRA:
         return month_pred.values.reshape(-1,1)
     
     def _365df(yr=True):
-        oficial=PI_BCRA.dframes(0)
+        oficial=PI_BCRA.dframes(0) 
         blue=PI_BCRA.dframes(1)
         diferencia=PI_BCRA.dframes(2)
 
-        hoy = datetime.date.today()
+        hoy = datetime.date.today() 
         last_year = (datetime.datetime.now()-datetime.timedelta(days=396)).strftime("%Y-%m-%d")
 
-        precio_365=pd.merge(oficial,blue)
-        precio=precio_365.copy().join(diferencia)
+        precio_365=pd.merge(oficial,blue) 
+        precio=precio_365.copy().join(diferencia) 
+        
         precio_365=precio_365.loc[(precio_365['fecha']>str(last_year))&(precio_365['fecha']<str(hoy))].join(diferencia)
         precio_365=precio_365.iloc[::-1].head(264)
 
-        semana=pd.to_datetime(precio_365['fecha'])
+        semana=pd.to_datetime(precio_365['fecha']) 
         dia=pd.to_datetime(precio_365['fecha'])
+        precio_365['fecha']=pd.to_datetime(precio_365['fecha']).dt.date
+
         precio_365['semana']= semana.dt.isocalendar().week
         precio_365['dia']=dia.dt.isocalendar().day
         
+        
         cols=['dia','semana','fecha','precio_oficial','precio_blue','diferencia']
-        precio_365['fecha']=pd.to_datetime(precio_365['fecha']).dt.date
         precio_365=precio_365[cols]
 
         if yr==True: return precio_365
@@ -91,12 +90,15 @@ class PI_BCRA:
                 difdolar=PI_BCRA._365df(yr=True)
                 mask=['fecha','precio_oficial','precio_blue','diferencia']
                 if quest==0: return difdolar
-                elif quest==1:    
+                
+                elif quest==1:
                     precio_max=difdolar[difdolar['diferencia']==difdolar['diferencia'].max()]
                     return precio_max[mask]
+                
                 elif quest==2:
                     Top5=difdolar.nlargest(5, 'diferencia')
                     return Top5[mask].sort_values(by='fecha')
+                
                 elif quest==3:
                     col=['semana','diferencia','precio_blue','precio_oficial']
                     semana=difdolar[col].groupby('semana')
@@ -106,8 +108,8 @@ class PI_BCRA:
                                     'precio_blue':'blue_promedio',
                                     'precio_oficial': 'oficial_promedio'},inplace=True)
                     semana.reset_index(inplace=True)
-                    
                     return semana.head(5)
+                
                 else:
                     cols=['dia','diferencia','precio_blue','precio_oficial']
                     diaD=difdolar[cols].groupby('dia')
@@ -118,16 +120,17 @@ class PI_BCRA:
                                     'precio_oficial': 'oficial_promedio'},inplace=True)
                     diaD.reset_index(inplace=True)
                     return diaD.head(5)
-            elif 4<quest<=6:
+            
+            elif 4<quest<=6:    
                 if quest==5:
                     precio=PI_BCRA._365df(yr=False)
                     hechos=PI_BCRA.getDFAPI(PI_BCRA.url3,PI_BCRA.token)
                     hechos.rename(columns={'d':'fecha','e':'evento','t':'tipo'},inplace=True)
                     p=precio.copy().merge(hechos,on='fecha')
                     return p
+                
                 elif quest==6:
                     month_pred=PI_BCRA._getmonth()
-        
                     if  type=='oficial':
                             #OFICIAL
                             oficialRL=PI_BCRA.getDFAPI(PI_BCRA.url0,PI_BCRA.token)
@@ -146,7 +149,7 @@ class PI_BCRA:
 
                             return f'''    ##############################
     ##|Prediccion Dólar Oficial|##
-    ##############################  
+    ############################## 
 Mean Squared Error: {metrics.mean_squared_error(y_test, y_pred).round(3)}
 Accuracy Score: {regressor.score(X_test,y_test).round(2)}
 Predicion 3 meses: {np.exp(regressor.predict(month_pred)[0]).round(2)}

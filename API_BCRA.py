@@ -108,10 +108,14 @@ class PI_BCRA:
         '''
         Esta función devuelve dataframes de acuerdo a los ejercicios
         planteados en el cuestionario.
+        Al pasarle a esta funcion el número 6 y el tipo de dólar,
+        la función aplica un modelo de regresión lineal retornando
+        el puntaje de precisión, valor de MSE y la predicción del
+        precio a 3, 6 y 12 meses.
         
         quest: Corresponde al número de ejercicio deseado. Sólo recibe
                 un dato de tipo número entero entre 0 y 7.
-        
+
         type: refiere al tipo de dólar para realizar la predicción. Es un
                 dato de tipo string que debe ser: "oficial" o "blue".
         '''
