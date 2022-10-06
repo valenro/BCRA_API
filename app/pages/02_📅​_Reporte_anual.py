@@ -43,10 +43,13 @@ with ult365:
     figA.update_xaxes(ticks='outside',ticklen=8,color='white')
     figA.update_yaxes(ticks='outside',ticklen=8,color='white')
     st.plotly_chart(figA,use_container_width=True)
-
+    st.markdown(
+        '''
+        > Se buscó la variación máxima dentro de los últimos 365 días para obtener el resultado.
+        '''
+    )
 
     top5=quests(2)
-
     figB = make_subplots()
     figB.add_trace(go.Scatter(x=top5.fecha,y=top5.diferencia,name='Variación',line=dict(color='black',width=2),mode='markers'))
     figB.add_trace(go.Bar(x=top5.fecha,y=top5.precio_oficial,name='Dólar Oficial'))
@@ -65,6 +68,11 @@ with ult365:
     figB.update_xaxes(ticks='outside',ticklen=8,color='white')
     figB.update_yaxes(ticks='outside',ticklen=8,color='white')                        
     st.plotly_chart(figB,use_container_width=True)
+    st.markdown(
+        '''
+         > Al igual que en el ejercicio anterior, se buscaron los primeros 5 días con mayor variación de precios.
+        '''
+    )
 
     week=quests(3)
     figC = make_subplots()
@@ -86,11 +94,16 @@ with ult365:
     figC.update_xaxes(ticks='outside',ticklen=8,color='white')
     figC.update_yaxes(ticks='outside',ticklen=8,color='white')
     st.plotly_chart(figC,use_container_width=True)
-
+    st.markdown(
+        '''
+        > Para los resultados de ésta gráfica se agruparon los valores por semana, promediando los valores
+        > de cada tipo de dólar y la variación de precios. Y en conclusión, la semana 29 del año 2022 fue
+        > en la que hubo mayor variación en la brecha.
+        '''
+    )
 
     weekday=quests(4)
-    figD = make_subplots()
-    
+    figD = make_subplots()    
     figD.add_trace(go.Bar(x=weekday.diferencia_dia_promedio,y=weekday.dia,name='Variación',width=0.3,orientation='h',marker=dict(color='mediumaquamarine')))
     figD.update_xaxes(
         rangebreaks=[
@@ -107,3 +120,12 @@ with ult365:
     figD.update_xaxes(ticks='outside',ticklen=8,color='white')
     figD.update_yaxes(ticks='outside',ticklen=8,color='white')
     st.plotly_chart(figD,use_container_width=True)
+    st.markdown(
+        '''
+        > En ésta gráfica el eje Y representa los días de la semana de Lunes a Viernes. El resultado final
+        > se obtuvo agrupando los valores de acuerdo al día de semana y promediando el precio de cada dólar y
+        > la variación entre los mismos, llegando a la conclusión de que los días Miércoles es cuando hay mayor
+        > diferencia en el cierre de precios.
+
+        '''
+    )

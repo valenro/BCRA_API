@@ -10,7 +10,7 @@ from sklearn.linear_model import LinearRegression
 ''' # COPIA DEL ARCHIVO "API_BCRA_GET.py" # '''
 
 class PI_BCRA:
-    token={'Authorization': 'BEARER eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2OTEyMzU5NzcsInR5cGUiOiJleHRlcm5hbCIsInVzZXIiOiJ2YWxlbnRpbmphamFqYUBvdXRsb29rLmNvbSJ9.w4x86o2GigIyp4vzrYceC0_DUqs6eKNGn_WasjFchNR91iqG9fwISfvjD5XGL7pdY-k6XTBZ7ERpt9FuzJb2xw'}
+    token={'Authorization': 'BEARER eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2OTA4OTg1MTEsInR5cGUiOiJleHRlcm5hbCIsInVzZXIiOiJ2YWxlbnByb29tZ0BnbWFpbC5jb20ifQ.TFIg3m95E_1LkiNEhbXUV_LbM91gFU582lLpjZ38ek_K1OLNFMBY5-bWEVBX9DbQqXSaNaDVn78J7zgpcqpVIw'}
     url0='https://api.estadisticasbcra.com/usd_of'
     url1='https://api.estadisticasbcra.com/usd'
     url2='https://api.estadisticasbcra.com/var_usd_vs_usd_of'
@@ -148,8 +148,8 @@ class PI_BCRA:
                             y_pred=regressor.predict(X_test)
 
                             return f'''    ##############################
-    ##|Prediccion Dólar Oficial|##
-    ############################## 
+##|Prediccion Dólar Oficial|##
+##############################
 Mean Squared Error: {metrics.mean_squared_error(y_test, y_pred).round(3)}
 Accuracy Score: {regressor.score(X_test,y_test).round(2)}
 Predicion 3 meses: {np.exp(regressor.predict(month_pred)[0]).round(2)}
@@ -172,9 +172,9 @@ Predicion 12 meses: {np.exp(regressor.predict(month_pred)[2]).round(2)}
 
                         y1_pred=regressor.predict(X1_test)
 
-                        return f'''    ##############################
-    ##|Prediccion Dólar Blue|##
-    ##############################  
+                        return f'''###########################
+##|Prediccion Dólar Blue|##
+###########################  
 Mean Squared Error: {metrics.mean_squared_error(y1_test, y1_pred).round(2)}
 Accuracy Score: {regressor.score(X1_test,y1_test).round(2)}
 Predicion 3 meses: {np.exp(regressor.predict(month_pred)[0]).round(2)}
@@ -196,3 +196,26 @@ Predicion 12 meses: {np.exp(regressor.predict(month_pred)[2]).round(2)}
 
                 return last4
         else: return None
+
+    def _graph_cpvt(df:int):
+        '''
+        Función auxiliar para graficar el ejercicio 7
+        '''
+        cuatro_años = (datetime.datetime.now()-datetime.timedelta(days=1680)).strftime("%Y-%m-%d")
+        hoy = datetime.date.today()
+        compra_venta=PI_BCRA._365df(yr=False)
+        compra_venta=compra_venta.loc[(compra_venta['fecha']>str(cuatro_años))&(compra_venta['fecha']<str(hoy))]
+        if df==0: return compra_venta
+        elif df==1: 
+            mini=compra_venta.drop(columns='precio_blue').rename(columns={'precio_oficial':'precio'})
+            mini=mini[mini.precio==mini.precio.min()]
+            return mini
+        elif df==2:
+            maxi=compra_venta.drop(columns='precio_oficial').rename(columns={'precio_blue':'precio'})
+            maxi=maxi[maxi.precio==maxi.precio.max()]
+            return maxi
+
+pi=PI_BCRA
+
+aa=pi._graph_cpvt(2)
+print(aa)
