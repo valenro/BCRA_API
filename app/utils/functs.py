@@ -2,7 +2,6 @@ import requests
 import datetime
 import pandas as pd
 import numpy as np
-from pandasql import sqldf
 from sklearn import metrics
 from sklearn.model_selection import train_test_split 
 from sklearn.linear_model import LinearRegression
@@ -15,7 +14,6 @@ class PI_BCRA:
     url1='https://api.estadisticasbcra.com/usd'
     url2='https://api.estadisticasbcra.com/var_usd_vs_usd_of'
     url3=('https://api.estadisticasbcra.com/milestones')
-    pysqldf=lambda q: sqldf(q,globals())
     
     def getDFAPI(url,token=None):
         if type(url)!=str and type(token)!=dict:
@@ -214,8 +212,3 @@ Predicion 12 meses: {np.exp(regressor.predict(month_pred)[2]).round(2)}
             maxi=compra_venta.drop(columns='precio_oficial').rename(columns={'precio_blue':'precio'})
             maxi=maxi[maxi.precio==maxi.precio.max()]
             return maxi
-
-pi=PI_BCRA
-
-aa=pi._graph_cpvt(2)
-print(aa)

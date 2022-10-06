@@ -2,7 +2,6 @@ import requests
 import datetime
 import pandas as pd
 import numpy as np
-from pandasql import sqldf
 from sklearn import metrics
 from sklearn.model_selection import train_test_split 
 from sklearn.linear_model import LinearRegression
@@ -13,7 +12,6 @@ class PI_BCRA:
     url1='https://api.estadisticasbcra.com/usd'
     url2='https://api.estadisticasbcra.com/var_usd_vs_usd_of'
     url3=('https://api.estadisticasbcra.com/milestones')
-    pysqldf=lambda q: sqldf(q,globals())
     
     def getDFAPI(url,token=None):
         '''
@@ -106,8 +104,9 @@ class PI_BCRA:
 
     def exercise(quest:int,type:str=None):
         '''
-        Esta función devuelve dataframes de acuerdo a los ejercicios
+        Esta función retorna dataframes de acuerdo a los ejercicios
         planteados en el cuestionario.
+        
         Al pasarle a esta funcion el número 6 y el tipo de dólar,
         la función aplica un modelo de regresión lineal retornando
         el puntaje de precisión, valor de MSE y la predicción del
