@@ -82,7 +82,7 @@ with ult365:
             { 'pattern': 'day of week', 'bounds': [6, 1]}])
     figC.update_layout(bargap=0.4,title_text="<span style='font-size:22px'><b>Week with greater variation in the gap<b></span>",
                         yaxis_title="Price",
-                        xaxis_title="N° of",
+                        xaxis_title="Week number",
                         font=dict(size=14),
                         title={
                             'y':0.9,
