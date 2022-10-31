@@ -20,16 +20,16 @@ comvent=st.container()
 with info:
     st.markdown(
         '''
-        ## Información histórica
-        >  En la siguiente gráfica se puede observar el comportamiento de los valores de cada dólar
-        >  y el registro de algunos sucesos históricos en Argentina que pudieron afectar la variación
-        >  entre el dólar oficial y el blue. La posición de los eventos indica la variación de precios
-        >  que hubo ese día entre ambos tipos de dólar.
-        >> Los eventos estan categorizados de la siguiente manera:
-        >>    * bcra: Presidentes del Banco Central de la República Argentina.
-        >>    * econ: Ministros de economía.
-        >>    * trea: Ministros de hacienda.
-        >>    * misc: Otros eventos que afectaron el precio del dólar.
+        ## Historical info
+        >  The following graph shows the behavior of the values of each dollar
+        >  and the record of some historical events in Argentina that could affect the variation
+        >  between the official dollar and the blue dollar. The position of the events indicates the price variation
+        >  that occurred that day between both types of dollar.
+        >> Events are categorized as follows:
+        >>    * bcra: Presidents of the Central Bank of the Argentine Republic.
+        >>    * econ: Ministers of economy.
+        >>    * trea: Finance Ministers.
+        >>    * misc: Other events that could affect the price of the dollar.
         '''
     )
     hist_b=quests(5)
@@ -37,14 +37,14 @@ with info:
     col=['evento','tipo']
 
     fig = make_subplots()
-    fig.add_trace(go.Scatter(x=hist_a['fecha'],y=hist_a['precio_blue'],name='precio blue'))
-    fig.add_trace(go.Scatter(x=hist_a['fecha'],y=hist_a['precio_oficial'],name='precio oficial'))
+    fig.add_trace(go.Scatter(x=hist_a['fecha'],y=hist_a['precio_blue'],name='blue price'))
+    fig.add_trace(go.Scatter(x=hist_a['fecha'],y=hist_a['precio_oficial'],name='official price'))
     fig.add_trace(go.Scatter(x=hist_b['fecha'],y=hist_b['diferencia'],mode='markers',marker=dict(size=6),name=''
-                            ,customdata=hist_b[col],hovertemplate='<br>  variación blue vs of: %{y}<br>  evento: %{customdata[0]}<br>  tipo: %{customdata[1]} ',))
+                            ,customdata=hist_b[col],hovertemplate='<br>  blue vs of variation : %{y}<br>  event: %{customdata[0]}<br>  type: %{customdata[1]} ',))
     fig.update_layout(hovermode="x unified",
-                        title_text="<span style='font-size:22px'><b>Comportamiento histórico del dólar y eventos históricos<b></span>",
-                        yaxis_title="Precio",
-                        xaxis_title="Fecha",
+                        title_text="<span style='font-size:22px'><b>Historical behavior of the dollar and historical events<b></span>",
+                        yaxis_title="Price",
+                        xaxis_title="Date",
                         font=dict(size=14),
                         title={
                             'y':0.9,
@@ -58,16 +58,16 @@ with info:
 with MLmodel:
     st.markdown(
         '''
-        ## Predicción de precios
+        ## Price prediction
 
-        ##### El método para realizar las predicciones del dólar oficial y blue fue bastante similar, a continuación explicaré como fue el paso a paso:
+        ##### The method to make the predictions of the official and blue dollar was quite similar, below I will explain how it was step by step:
         '''
     )
     st.markdown(
         '''
-        >  Primero entrené el modelo con el set de datos completo, en cuanto a las features no tenía tantas opciones
-        >  ya que el dataframe que se extrae desde la API retorna solo dos columnas correspondientes a la fecha
-        >  y el valor en el que cerró el precio del dólar ese día.
+        >  First I trained the model with the complete data set, in terms of the features I did not have many options
+        >  since the dataframe that is extracted from the API returns only two columns corresponding to the date
+        >  and the value at which the dollar price closed that day.
         '''
     )
     mlcol=st.columns(2)
@@ -78,12 +78,12 @@ with MLmodel:
 
     st.markdown(
         '''
-        >  Como se puede observar en las imágenes, en ambas ocasiones si obtenía un buen puntaje de precisión
-        >  pero las predicciones tenían un margen de error bastante alto entonces acá entró mi gran duda sobre
-        >  qué podía estar ocasionando el error tan elevado. Lo que me llevó a cuestionarme si estaba frente a
+        >  As can be seen in the images, on both occasions I did get a good accuracy score and the MSE value
+        >  was good too. Which led me to question if I was facing a case of overfitting in order to further
+        >  reduce the MSE because as I mentioned before, I was using the entire dataset.
         >  un caso de overfitting porque como mencioné antes, estaba usando el dataset entero.
-        >  Por esta razón, decidí filtrar los datos y obtener los registros de los últimos 4 años para entrenar 
-        >  el modelo una vez más.
+        >  For this reason, I decided to filter the data and get the records for the last 4 years
+        >  to train the model once more.
         '''
     )
     RLoficial=quests(6,'oficial')
@@ -91,19 +91,19 @@ with MLmodel:
     st.code(RLoficial)
     st.code(RLblue)
     mlcol1=st.columns(2)
-    mlcol1[0].image('app/utils/images/RLoficial.jpeg')
+    mlcol1[0].image('app/utils/images/RLblue.jpeg')
     mlcol1[1].image('app/utils/images/RLoficial.jpeg')
     
     st.markdown(
         '''
-        >  Y definitivamente llegué a la conclusión de que estaba frente a un caso de overfitting ya que luego de
-        >  reducir la cantidad de datos, tanto el puntaje de precisión como el MSE mejoraron en gran medida y pude
-        >  obtener un modelo más exacto en las predicciones.
+        >  And I definitely came to the conclusion that I was facing a case of overfitting since after
+        >  since after reducing the amount of data, both the accuracy score and the MSE improved greatly and I was able to
+        >  get a more accurate model in the predictions.
         '''
     )
 
 with comvent:
-    st.markdown("## Mejor compra venta")
+    st.markdown("## Best trading")
     cpvt=quests(7)
     df=plot(0)
     df1=plot(1)
@@ -112,14 +112,14 @@ with comvent:
     st.dataframe(cpvt)
 
     fig = make_subplots()
-    fig.add_trace(go.Scatter(x=df['fecha'],y=df['precio_blue'],name='precio blue'))
-    fig.add_trace(go.Scatter(x=df['fecha'],y=df['precio_oficial'],name='precio oficial'))
-    fig.add_trace(go.Scatter(x=df['fecha'],y=df['diferencia'],name='diferencia',))
-    fig.add_trace(go.Scatter(x=df1['fecha'],y=df1['precio'],marker=dict(size=12),name='mejor compra'))
-    fig.add_trace(go.Scatter(x=df2['fecha'],y=df2['precio'],marker=dict(size=12),name='mejor venta'))
-    fig.update_layout(title_text="<span style='font-size:22px'><b>Registro últimos 4 años<b></span>",
-                        yaxis_title="Precio",
-                        xaxis_title="Fecha",
+    fig.add_trace(go.Scatter(x=df['fecha'],y=df['precio_blue'],name='blue price'))
+    fig.add_trace(go.Scatter(x=df['fecha'],y=df['precio_oficial'],name='official price'))
+    fig.add_trace(go.Scatter(x=df['fecha'],y=df['diferencia'],name='difference',))
+    fig.add_trace(go.Scatter(x=df1['fecha'],y=df1['precio'],marker=dict(size=12),name='best buy'))
+    fig.add_trace(go.Scatter(x=df2['fecha'],y=df2['precio'],marker=dict(size=12),name='best sell'))
+    fig.update_layout(title_text="<span style='font-size:22px'><b>Record last 4 years<b></span>",
+                        yaxis_title="Price",
+                        xaxis_title="Date",
                         font=dict(size=14),
                         title={
                             'y':0.9,
@@ -131,8 +131,8 @@ with comvent:
     st.plotly_chart(fig,use_container_width=True)
     st.markdown(
         '''
-        > En este ejercicio se buscó el valor mínimo del dólar oficial para la compra y el valor
-        > máximo del dólar blue en los últimos 4 años.
+        > In this exercise, the minimum value of the official dollar for purchase and the
+        > maximum value of the blue dollar in the last 4 years were searched.
         '''
     )
 

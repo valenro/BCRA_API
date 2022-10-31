@@ -8,35 +8,31 @@ with cont:
         '''
         # API BCRA
 
-Este proyecto se centra el cambio de precios comparando la cotización del dólar oficial contra el dólar blue en Argentina.
-El tipo de dolar "blue" hace referencia a la moneda que se obtiene en el mercado negro o de manera informal y suele tener un tipo de cambio 
-que se encuentra muy por encima del dólar oficial.
-El propósito de este proyecto es determinar si el precio del dólar blue es mayor o menor que el precio oficial. Para ello, se recogieron datos
-de una API en la siguiente fuente:
+This project focuses on the price change by comparing the price of the official dollar against the blue dollar in Argentina.
+The "blue" type of dollar refers to currency that is obtained on the black market or informally and usually has an exchange rate that is well above the official dollar.
 
- * Un sitio web independiente que recopila datos diarios publicados por el Banco Central de la República Argentina: https://estadisticasbcra.com/
+The purpose of this project is to determine if the price of the blue dollar is higher or lower than the official price. To do this, data was collected from an API in the following source:
 
-Para realizarlo se utilizaron librerías de Python como Pandas para extraer datos, usando diversos métodos para sacar información e incluye
-visualizaciones usando Plotly. Además, utiliza la biblioteca scikit-learn para analizar los datos y generar una predicción con un modelo de
-Machine Learning de regresión lineal para precios futuros.
+ * An independent website that collects daily data published by the Central Bank of the Argentine Republic: https://estadisticasbcra.com/
 
-Los resultados planteados en las páginas siguientes se obtuvieron a partir del siguiente cuestionario:
- * Dólar oficial vs Dólar Blue:
-     * Últimos 365 días:
-         * 1) Día con mayor variación en la brecha
-         * 2) Top 5 días con mayor variación
-         * 3) Semana con mayor variación en la brecha
-         * 4) Día de la semana donde hay mayor variación en la brecha
+Python libraries were used to do it such as various Pandas methods to extract data and includes visualizations using Plotly. In addition, it uses the Scikit-learn library to analyze the data and generate a prediction with a linear regression Machine Learning model for future prices.
+
+The results presented in the following pages were obtained from the following questionnaire:
+ * Official Dollar vs. Blue Dollar:
+     * Last 365 days:
+         * 1) Day with greater variation in the gap
+         * 2) Top 5 days with the greatest variation
+         * 3) Week with greater variation in the gap
+         * 4) Day of the week where there is greater variation in the gap
  
      * General:
-         * 5) Con la info histórica del valor del dólar y del blue, realizar un análisis exploratorio. Cruzar la data con sucesos importantes a nivel político-económico y graficar mes a mes.
+         * 5) With the historical info on the value of the dollar and the blue, carry out an exploratory analysis. Cross the data with important events at the political-economic level and graph month by month.
 
-         * 6) Implementar una regresión lineal (una para cada tipo de dólar) para predecir el valor del dólar en:
-             - 3 meses
-             - 6 meses
-             - 12 meses
+         * 6) Implement a linear regression (one for each type of dollar) to predict the value of the dollar at:
+             - 3 months
+             - 6 months
+             - 12 months
 
-        * Últimos 4 años:
-            * 7) Mejor momento para comprar dolár oficial y venderlo a dolár blue
-        '''
+        * Last 4 years:
+            * 7) Best time to buy the official dollar and sell it for the blue dollar        '''
     )
